@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,8 +15,8 @@ namespace ChatAppClient.Net
         public PacketReader PacketReader;
 
         public event Action connectedEvent;
-
-
+        public event Action messageRecievedEvent;
+        public event Action userDisconnectedEvent;
 
         public Server() 
         { 
@@ -52,11 +53,26 @@ namespace ChatAppClient.Net
                     case 1:
                         connectedEvent?.Invoke();
                         break;
+                    case 5:
+                        messageRecievedEvent?.Invoke();
+                        break;
+                    case 10:
+                        userDisconnectedEvent?.Invoke();
+                        break;
                     default:
                         Console.Write("Kojznae");
                         break;
                 }
             });
+        }
+
+        public void SendMessageToServer(string Message)
+        {
+            var messagePacket = new PacketBuilder();
+            messagePacket.WriteOpCode(5);
+            messagePacket.WriteMessage(Message);
+            _client.Client.Send(messagePacket.GetPacketBytes());
+
         }
     }
 }
